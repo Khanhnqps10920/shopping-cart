@@ -1,25 +1,35 @@
 import React from 'react';
-import logo from './logo.svg';
+import HomePage from './components/HomePage/HomePage';
+import Header from './components/Common/Header/Header';
+import Footer from './components/Common/Footer/Footer';
 import './App.css';
+import { BrowserRouter, Switch, Route, Link, NavLink } from 'react-router-dom';
+import ShopPage from './components/ShopPage/ShopPage';
+import PromotionPage from './components/PromotionPage/PromotionPage';
+import BlogPage from './components/BlogPage/BlogPage';
+import ContactPage from './components/ContactPage/ContactPage';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Header>
+        <li><NavLink exact to="/">Home</NavLink></li>
+        <li><NavLink to="/shop">Shop</NavLink></li>
+        <li><NavLink to="/promotion">Promotion</NavLink></li>
+        <li><NavLink to="/blog">Blog</NavLink></li>
+        <li><NavLink to="/contact">Contact</NavLink></li>
+      </Header>
+
+      <Switch>
+        <Route path="/" exact component={HomePage} />
+        <Route path="/shop" component={ShopPage} />
+        <Route path="/promotion" component={PromotionPage} />
+        <Route path="/blog" component={BlogPage} />
+        <Route path="/contact" component={ContactPage} />
+      </Switch>
+
+      <Footer />
+    </BrowserRouter>
   );
 }
 
