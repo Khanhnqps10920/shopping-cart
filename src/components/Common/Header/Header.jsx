@@ -1,9 +1,13 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import './Header.css';
+import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 class Header extends PureComponent {
   render() {
+
+    const { cartList } = this.props;
 
     return (
       <div>
@@ -63,10 +67,12 @@ class Header extends PureComponent {
                     </ul>
                     <ul className="navbar_user">
                       <li className="checkout">
-                        <a href="#">
+                        <Link to="/cart" >
                           <i className="fa fa-shopping-cart" aria-hidden="true"></i>
-                          <span id="checkout_items" className="checkout_items">2</span>
-                        </a>
+                          {
+                            cartList.length < 1 ? '' : <span id="checkout_items" className="checkout_items">{cartList.length}</span>
+                          }
+                        </Link>
                       </li>
                     </ul>
                     <div className="hamburger_container">
@@ -133,7 +139,19 @@ class Header extends PureComponent {
   }
 }
 
+
 Header.propTypes = {
+  cartList: PropTypes.array,
 };
 
-export default Header;
+Header.defaultProps = {
+  cartList: null
+}
+
+const mapStateToProps = state => {
+  return {
+    cartList: state.cart.cartItemList
+  }
+}
+
+export default connect(mapStateToProps)(Header);
