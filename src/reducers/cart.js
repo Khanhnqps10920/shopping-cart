@@ -35,7 +35,6 @@ const cartReducer = (state = initialState, action) => {
       // find IDX
       // remove
       // update total
-      console.log('hello');
       const product = action.payload;
       const cartItemList = [...state.cartItemList];
       const itemIdx = cartItemList.findIndex(i => i.id === product.id);
@@ -44,6 +43,25 @@ const cartReducer = (state = initialState, action) => {
       cartItemList.splice(itemIdx, 1);
 
       return { ...state, total, cartItemList };
+    }
+    case actionType.REMOVE_ONE_ITEM_FROM_CART: {
+
+      // find idx 
+      //remove 1 quantity
+      //update total
+
+      const product = action.payload;
+      const cartItemList = [...state.cartItemList];
+      const itemIdx = cartItemList.findIndex(i => i.id === product.id);
+      let total = state.total;
+      cartItemList[itemIdx] = {
+        ...cartItemList[itemIdx],
+        quantity: cartItemList[itemIdx].quantity - 1
+      };
+
+      total = total - product.product.salePrice;
+
+      return { ...state, cartItemList, total };
     }
 
     default: return state;

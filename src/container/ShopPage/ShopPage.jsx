@@ -6,6 +6,9 @@ import ShopCategories from '../../components/ShopCategories/ShopCategories';
 import ListSort from '../../components/ListSort/ListSort';
 import ShortingNum from '../../components/ShortingNum/ShortingNum';
 import Axios from 'axios';
+import { addToCart } from '../../actions/cart';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux'
 
 
 class ShopPage extends PureComponent {
@@ -169,6 +172,14 @@ class ShopPage extends PureComponent {
     history.push(productDetailURL);
   }
 
+  handleAddToCart = (e, product) => {
+    e.stopPropagation();
+    this.props.addToCart(product);
+    console.log(this.props.cartItemList);
+
+  }
+
+
   render() {
 
     let {
@@ -260,7 +271,7 @@ class ShopPage extends PureComponent {
 
                       <div className="row">
                         {/* productList */}
-                        <ProductList productList={productList} onProductClick={this.handleProductClick} />
+                        <ProductList productList={productList} onAddToCartClick={this.handleAddToCart} onProductClick={this.handleProductClick} />
                       </div>
                     </div>
 
@@ -308,7 +319,22 @@ class ShopPage extends PureComponent {
 }
 
 ShopPage.propTypes = {
-
+  addToCart: PropTypes.func
 };
 
-export default ShopPage;
+ShopPage.defaultProps = {
+  addToCart: null
+};
+
+const mapStateToProps = state => ({
+
+})
+
+const mapDispatchToProps = dispatch => {
+  return bindActionCreators({
+    addToCart
+  }, dispatch);
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(ShopPage);

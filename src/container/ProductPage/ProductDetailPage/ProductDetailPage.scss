@@ -223,12 +223,21 @@
 {
 	color: #b5aec4;
 }
-.add_to_cart_button
-{
-	width: 160px;
-	margin-left: 19px;
-	font-size: 12px !important;
+.special-button {
+	background-color:red;
+	padding:8px 30px;
+	margin-left: 10px;
+	border-radius:5px;
 }
+
+.special-button:hover {
+	opacity: 0.8;
+}
+
+.special-button > a {
+	color:white;
+}
+
 .product_favorite
 {
 	width: 40px;

@@ -1,5 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { addToCart } from '../../../actions/cart';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+
 import './ProductDetailPage.scss';
 import ProductImgList from '../../../components/ProductImgList/ProductImgList';
 
@@ -48,6 +53,12 @@ class ProductDetailPage extends PureComponent {
         quantity
       }
     })
+  }
+
+  handleAddToCart = (quantity, product) => {
+    for (let i = 1; i <= quantity; i++) {
+      this.props.addToCart(product);
+    }
   }
 
 
@@ -135,8 +146,8 @@ class ProductDetailPage extends PureComponent {
                     <span id="quantity_value">{quantity}</span>
                     <span className="plus" onClick={this.handlePlusClick}><i className="fa fa-plus" aria-hidden="true"></i></span>
                   </div>
-                  <div className="red_button add_to_cart_button"><a href="#">add to cart</a></div>
-                  <div className="product_favorite d-flex flex-column align-items-center justify-content-center"></div>
+                  <div className="special-button" onClick={() => this.handleAddToCart(quantity, product)}><a href="#">add to cart</a></div>
+                  {/* <div className="product_favorite d-flex flex-column align-items-center justify-content-center"></div> */}
                 </div>
               </div>
             </div>
@@ -307,7 +318,21 @@ class ProductDetailPage extends PureComponent {
 }
 
 ProductDetailPage.propTypes = {
-
+  addToCart: PropTypes.func
 };
 
-export default ProductDetailPage;
+ProductDetailPage.defaultProps = {
+  addToCart: null
+};
+
+const mapStateToProps = state => ({
+
+})
+
+const mapDispatchToProps = dispatch => {
+  return bindActionCreators({
+    addToCart
+  }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProductDetailPage);

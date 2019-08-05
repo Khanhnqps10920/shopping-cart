@@ -7,6 +7,10 @@ import Axios from 'axios';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { addToCart } from '../../actions/cart';
+import ProductGetAPI from '../../container/ProductPage/ProductGetAPI/ProductGetAPI';
+import productApi from '../../api/productApi';
+import categoriesApi from '../../api/categoryApi';
+
 
 class NewArrival extends PureComponent {
 
@@ -15,67 +19,94 @@ class NewArrival extends PureComponent {
 
     this.state = {
       ctg: null,
-      productList: [
-
-      ],
+      productList: [],
       dataFetch: false,
-      categories: [{
-        "id": "5b822e7f9c300309b7e9befc",
-        "name": "men",
-        "iconName": "men"
-      },
-      {
-        "id": "5b822e919c300309b7e9bf0e",
-        "name": "women",
-        "iconName": "women"
-      },
-      {
-        "id": "5b822ea99c300309b7e9bf13",
-        "name": "accessories",
-        "iconName": "accessories"
-      },
-      {
-        "id": "5c247ffadce5fc028675484b",
-        "name": "All",
-        "iconName": "All"
-      },
-      ],
+      categories: [],
+      limit: 10,
+      skip: 0,
+      order: '',
+      categoryId: null,
     }
   }
 
   async componentDidMount() {
     try {
-      const products = await Axios.get("http://api.demo.nordiccoder.com/api/products");
-      const { data } = products;
-      const productList = data.body;
+      const filter = {
+        limit: this.state.limit,
+        skip: this.state.skip,
+        where: {
 
+        }
+      }
+      const params = {
+        filter: JSON.stringify(filter)
+      };
+
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+
+
+      const categoryList = await categoriesApi.getAll();
+      const { body: categories } = categoryList;
+      categories.push({ id: "all", name: "All" });
 
       this.setState({
         dataFetch: true,
-        productList
+        productList,
+        categories
       })
     } catch (error) {
       console.log(error);
     }
   }
 
-  handleCategoriesClick = (category) => {
+  handleCategoriesClick = async (category) => {
 
-    this.setState((prevState) => {
 
-      let ctg = prevState.ctg;
-      if (category.name === 'All') {
-        ctg = null;
+    const { limit, skip } = this.state;
+
+    let filter = {
+      limit,
+      skip,
+      where: {
+
       }
-      else {
-        ctg = { ...category };
-      }
-      // const productList = [...prevState.productList].filter((p) => p.id === category.id);
+    }
 
-      return { ctg };
-    })
+    if (category.id !== "all") {
+      filter = {
+        ...filter,
+        where: {
+          categoryId: category.id
+        }
+      };
+    }
+    else {
+      filter = {
+        ...filter
+      };
+
+      delete filter.where.categoryId
+    }
+    console.log(filter);
+    const params = {
+      filter: JSON.stringify(filter)
+    };
+    try {
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+      this.setState({
+        productList
+      })
+    }
+    catch (e) {
+      console.log(e);
+    }
+
 
   }
+
+
 
   handleProductClick = (product) => {
     const { history } = this.props;
@@ -93,26 +124,17 @@ class NewArrival extends PureComponent {
 
   render() {
 
-    const { productList, categories, ctg, dataFetch } = this.state;
-
-
-    let testList;
-
-    if (ctg === null) {
-      testList = productList;
-    } else {
-      testList = [...productList].filter((p) => {
-        return p.categoryId === ctg.id;
-      })
-    }
-
+    const { productList, categories, dataFetch } = this.state;
 
     let products;
     if (!dataFetch) {
-      products = <p>Đang lấy dữ liệu đợi xíu !!!!!</p>
+      products = <p style={{
+        textAlign: 'center',
+        fontSize: '30px'
+      }}>Đang lấy dữ liệu đợi xíu !!!!!</p>
     }
     else {
-      products = <ProductList productList={testList} onProductClick={this.handleProductClick} onAddToCartClick={this.handleAddToCart} />
+      products = <ProductList productList={productList} onProductClick={this.handleProductClick} onAddToCartClick={this.handleAddToCart} />
     }
 
 

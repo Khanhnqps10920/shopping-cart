@@ -8,8 +8,6 @@ import CartItemList from '../../components/CartItem/CartItemList';
 class CartPage extends PureComponent {
   constructor(props) {
     super(props);
-
-
   }
 
   render() {
