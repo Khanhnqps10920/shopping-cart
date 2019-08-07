@@ -56,6 +56,7 @@ class ProductDetailPage extends PureComponent {
   }
 
   handleAddToCart = (quantity, product) => {
+
     for (let i = 1; i <= quantity; i++) {
       this.props.addToCart(product);
     }
@@ -146,7 +147,10 @@ class ProductDetailPage extends PureComponent {
                     <span id="quantity_value">{quantity}</span>
                     <span className="plus" onClick={this.handlePlusClick}><i className="fa fa-plus" aria-hidden="true"></i></span>
                   </div>
-                  <div className="special-button" onClick={() => this.handleAddToCart(quantity, product)}><a href="#">add to cart</a></div>
+                  <div className="special-button" onClick={(e) => {
+                    e.stopPropagation();
+                    return this.handleAddToCart(quantity, product);
+                  }}><a style={{ color: 'white' }}>add to cart</a></div>
                   {/* <div className="product_favorite d-flex flex-column align-items-center justify-content-center"></div> */}
                 </div>
               </div>

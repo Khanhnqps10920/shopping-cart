@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-
+import { Link } from 'react-router-dom'
 import './CartPage.scss'
 import CartItemList from '../../components/CartItem/CartItemList';
 
@@ -31,7 +31,9 @@ class CartPage extends PureComponent {
         <div className="cart cart-item">
           <div className="cart-justify-space-between">
             <div className="cart__backToShop">
-              <h3>BACK TO SHOP</h3>
+              <h3>
+                <Link to="/shop">BACK TO SHOP</Link>
+              </h3>
             </div>
             <div className="cart__total">
               <h3>Total: {total}</h3>

@@ -22,21 +22,21 @@ class NewArrival extends PureComponent {
       productList: [],
       dataFetch: false,
       categories: [],
-      limit: 10,
-      skip: 0,
-      order: '',
-      categoryId: null,
+      filter: {
+        skip: 0,
+        limit: 10,
+        order: '',
+        where: {
+        }
+      }
+
     }
   }
 
   async componentDidMount() {
     try {
       const filter = {
-        limit: this.state.limit,
-        skip: this.state.skip,
-        where: {
-
-        }
+        ...this.state.filter
       }
       const params = {
         filter: JSON.stringify(filter)
@@ -60,51 +60,51 @@ class NewArrival extends PureComponent {
     }
   }
 
+
+
   handleCategoriesClick = async (category) => {
+    this.setState({
+      dataFetch: false,
+    })
 
+    let filter = { ...this.state.filter }
 
-    const { limit, skip } = this.state;
-
-    let filter = {
-      limit,
-      skip,
-      where: {
-
-      }
-    }
-
-    if (category.id !== "all") {
-      filter = {
-        ...filter,
-        where: {
-          categoryId: category.id
-        }
-      };
-    }
-    else {
-      filter = {
-        ...filter
-      };
-
-      delete filter.where.categoryId
-    }
-    console.log(filter);
-    const params = {
-      filter: JSON.stringify(filter)
-    };
     try {
+  
+
+      if (category.id === "all") {
+        delete filter.where.categoryId;
+        this.setState({
+          filter
+        })
+      }
+      else {
+        filter.where.categoryId = category.id;
+        this.setState({
+          filter
+        })
+      }
+
+
+      const params = {
+        filter: JSON.stringify(this.state.filter)
+      }
+
+
       const products = await productApi.getAll(params);
       const { body: productList } = products;
+      console.log(filter, products);
+
       this.setState({
+        dataFetch: true,
         productList
       })
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
     }
 
-
   }
+
 
 
 

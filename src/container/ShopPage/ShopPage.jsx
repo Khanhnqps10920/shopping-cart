@@ -9,6 +9,10 @@ import Axios from 'axios';
 import { addToCart } from '../../actions/cart';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux'
+import productApi from '../../api/productApi';
+import categoriesApi from '../../api/categoryApi';
+import NumbersOfPage from '../../components/NumbersOfPage/NumbersOfPage';
+import { async } from 'q';
 
 
 class ShopPage extends PureComponent {
@@ -19,58 +23,79 @@ class ShopPage extends PureComponent {
     this.state = {
       productList: [
       ],
-      categories: [{
-        "id": "5b822e7f9c300309b7e9befc",
-        "name": "men",
-        "iconName": "men"
-      },
-      {
-        "id": "5b822e919c300309b7e9bf0e",
-        "name": "women",
-        "iconName": "women"
-      },
-      {
-        "id": "5b822ea99c300309b7e9bf13",
-        "name": "accessories",
-        "iconName": "accessories"
-      },
-      {
-        "id": "5c247ffadce5fc028675484b",
-        "name": "All",
-        "iconName": "All"
-      },
+      categories: [
       ],
       filterPrice: '',
       dataFetch: false,
       sortTypeItem: 'DEFAULT SORTING',
       show: 'default',
       numList: [{ title: 6, id: 1 }, { title: 12, id: 2 }, { title: 24, id: 3 }],
+      pages: [],
       sortList: [
         {
           title: 'DEFAULT SORTING',
-          id: 1
+          id: ''
         },
         {
           title: 'PRICE',
-          id: 2
+          id: 'salePrice desc'
         },
         {
           title: 'PRODUCT NAME',
-          id: 3
+          id: 'name desc'
         }
-      ]
+      ],
+      totalPage: 0,
+      filter: {
+        skip: 0,
+        limit: 12,
+        order: '',
+        where: {
+          and: [
+            { salePrice: { gte: 0 } }
+          ]
+        }
+      },
+      currentPage: 1
     };
   };
 
   async componentDidMount() {
     try {
-      const products = await Axios.get("http://api.demo.nordiccoder.com/api/products");
-      const { data } = products;
-      const productList = data.body;
+      const { filter } = this.state;
+      const params = {
+        filter: JSON.stringify(filter)
+      }
+      const data = await productApi.getAll(params);
+      console.log(data);
+      const { body: productList } = data;
+
+      const { limit: limit, total: total } = data.pagination;
+
+      const totalPage = Math.ceil((total / limit));
+
+      const pages = new Array(totalPage);
+
+      for (let i = 0; i < pages.length; i++) {
+        pages[i] = i + 1;
+      }
+
+      console.log(totalPage, total, limit, pages);
+      const categoryList = await categoriesApi.getAll();
+
+      const { body: categories } = categoryList;
+
+      categories.push({ id: "all", name: "All" });
+
       this.setState({
         dataFetch: true,
-        productList
+        categories,
+        productList,
+        totalPage,
+        pages
       })
+
+
     } catch (error) {
       console.log(error);
     }
@@ -83,87 +108,177 @@ class ShopPage extends PureComponent {
   };
 
   handleFilterPrice = async (e) => {
-    const products = await Axios.get("http://api.demo.nordiccoder.com/api/products");
-    const { data } = products;
-
-
-    this.setState((prevState) => {
-      const filterPrice = prevState.filterPrice;
-      let productList;
-      console.log(products);
-
-      if (!filterPrice) {
-        productList = data.body;
-      }
-      else {
-        productList = [...prevState.productList].filter(p => {
-          return p.salePrice.toString() === filterPrice;
-        });
-      }
-
-      return { productList };
+    this.setState({
+      dataFetch: false
     })
+    const { filterPrice } = this.state;
+    const filter = {
+      ...this.state.filter
+    }
+    try {
+
+      filter.where.and[0].salePrice.gte = filterPrice - 0;
+      this.setState({
+        filter
+      })
+      const params = {
+        filter: JSON.stringify(filter)
+      }
+      const data = await productApi.getAll(params);
+      console.log(data);
+      const { body: productList } = data;
+
+      this.setState({
+        dataFetch: true,
+        filter,
+        productList
+      })
+
+    }
+    catch (e) {
+      console.log(e);
+    }
+
   }
 
   handleCategoryClick = async (category) => {
-    const products = await Axios.get("http://api.demo.nordiccoder.com/api/products");
-    const { data } = products;
+    this.setState({
+      dataFetch: false,
+    })
 
-    this.setState((prevState) => {
-      let productList;
-      if (category.name === "All") {
-        productList = data.body;
+    let filter = { ...this.state.filter }
+
+    try {
+
+
+      if (category.id === "all") {
+        delete filter.where.categoryId;
+        this.setState({
+          filter
+        })
       }
       else {
-        productList = data.body.filter(p => {
-          return p.categoryId === category.id;
+        filter.where.categoryId = category.id;
+        this.setState({
+          filter
         })
       }
 
-      return { productList };
-    });
+
+      const params = {
+        filter: JSON.stringify(filter)
+      }
+
+
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+      console.log(filter, products);
+
+      this.setState({
+        dataFetch: true,
+        productList
+      })
+    } catch (e) {
+      console.log(e);
+    }
+
   }
 
-  handleSortClick = (sortingType) => {
+  handleSortClick = async (sortingType) => {
 
-    this.setState((prevState) => {
+    const filter = { ...this.state.filter };
 
-      let sortTypeItem = prevState.sortTypeItem;
-      sortTypeItem = sortingType.title;
-      let productList;
+    try {
+      filter.order = sortingType.id;
+      this.setState({
+        filter
+      })
 
-      if (sortingType.id === 1) {
-        productList = [...prevState.productList];
-      }
-      else if (sortingType.id === 2) {
-        productList = [...prevState.productList].sort((p1, p2) => {
-          return p1.salePrice - p2.salePrice;
-        });
-      }
-      else {
-        productList = [...prevState.productList].sort((p1, p2) => {
-          if (p1.name.toLowerCase() < p2.name.toLowerCase()) {
-            return -1;
-          }
-          if (p1.name.toLowerCase() > p2.name.toLowerCase()) {
-            return 1;
-          }
-          return 0;
-        });
+      const params = {
+        filter: JSON.stringify(filter)
       }
 
-      return { sortTypeItem, productList };
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+      console.log(filter, products);
+
+      this.setState({
+        productList,
+        sortTypeItem: sortingType.title
+      })
+
+    } catch (e) {
+      console.log(e);
+    }
+
+  }
+
+  handleChangePageClick = async (page) => {
+    this.setState({
+      dataFetch: false
+    })
+    const filter = { ...this.state.filter };
+    filter.skip = (page - 1) * filter.limit;
+    this.setState({
+      filter
+    })
+
+    const params = {
+      filter: JSON.stringify(this.state.filter)
+    }
+
+
+    const products = await productApi.getAll(params);
+    const { body: productList } = products;
+
+    this.setState({
+      dataFetch: true,
+      productList,
+      currentPage: page
     })
   }
 
-  handleNumClick = (num) => {
-    this.setState((prevState) => {
-      let show = prevState.show;
-      show = num.title;
+  handleNumClick = async (num) => {
+
+    const filter = { ...this.state.filter };
+
+    try {
+
+      filter.limit = num.title;
+      this.setState({
+        filter
+      });
+
+      const params = {
+        filter: JSON.stringify(filter)
+      }
+
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+      
+      const { limit: limit, total: total } = products.pagination;
+
+      const totalPage = Math.ceil((total / limit));
+
+      const pages = new Array(totalPage);
+
+      for (let i = 0; i < pages.length; i++) {
+        pages[i] = i + 1;
+      }
 
 
-      return { show };
-    })
+    
+      this.setState({
+        productList,
+        show: num.title,
+        totalPage,
+        pages
+      })
+
+    } catch (e) {
+      console.log(e);
+    }
+
   }
 
   handleProductClick = (product) => {
@@ -176,7 +291,6 @@ class ShopPage extends PureComponent {
     e.stopPropagation();
     this.props.addToCart(product);
     console.log(this.props.cartItemList);
-
   }
 
 
@@ -189,7 +303,11 @@ class ShopPage extends PureComponent {
       sortList,
       sortTypeItem,
       show,
-      numList
+      numList,
+      dataFetch,
+      totalPage,
+      pages,
+      currentPage
     } = this.state;
 
 
@@ -254,14 +372,10 @@ class ShopPage extends PureComponent {
                       </ul>
                       <div className="pages d-flex flex-row align-items-center">
                         <div className="page_current">
-                          <span>1</span>
-                          <ul className="page_selection">
-                            <li><a href="#">1</a></li>
-                            <li><a href="#">2</a></li>
-                            <li><a href="#">3</a></li>
-                          </ul>
+                          <span>{currentPage}</span>
+                          <NumbersOfPage handleChangePage={this.handleChangePageClick} pages={pages} />
                         </div>
-                        <div className="page_total"><span>of</span> 3</div>
+                        <div className="page_total"><span>of</span>{totalPage}</div>
                       </div>
 
                     </div>
@@ -271,7 +385,16 @@ class ShopPage extends PureComponent {
 
                       <div className="row">
                         {/* productList */}
-                        <ProductList productList={productList} onAddToCartClick={this.handleAddToCart} onProductClick={this.handleProductClick} />
+                        {
+                          dataFetch ?
+                            <ProductList
+                              productList={productList}
+                              onAddToCartClick={this.handleAddToCart}
+                              onProductClick={this.handleProductClick}
+                            />
+                            : <p style={{ fontSize: '30px' }}>Đang lấy dữ liệu chờ xí</p>
+                        }
+
                       </div>
                     </div>
 
