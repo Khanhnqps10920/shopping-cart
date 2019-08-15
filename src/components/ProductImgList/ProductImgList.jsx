@@ -5,13 +5,18 @@ import ProductImgItem from '../ProductImgItem/ProductImgItem';
 class ProductImgList extends PureComponent {
   render() {
 
-    const { productImgList, onImageClick, className } = this.props;
+    const { productImgList, onImageClick, className, isActive } = this.props;
 
     return (
       <ul>
         {
           productImgList.map((img, index) => {
-            return <ProductImgItem productImg={img} key={index} onClick={onImageClick} />
+            return <ProductImgItem
+              isActive={isActive}
+              productImg={img} key={index}
+              onClick={() => onImageClick(img, index)}
+              idx={index}
+            />
           })
         }
       </ul>
@@ -22,13 +27,13 @@ class ProductImgList extends PureComponent {
 ProductImgList.propTypes = {
   productImgList: PropTypes.array,
   onImageClick: PropTypes.func,
-  isActive: PropTypes.string
+  isActive: PropTypes.number
 };
 
 ProductImgList.defaultProps = {
   productImgList: null,
   onImageClick: null,
-  isActive: ""
+  isActive: 0
 }
 
 export default ProductImgList;

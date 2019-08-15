@@ -13,20 +13,31 @@ class ProductDetailPage extends PureComponent {
     super(props);
 
     this.state = {
-      isActive: false,
+      isActive: 0,
       imagesSRC: this.props.product.image,
       quantity: 0,
-      disable: true
+      disable: true,
+      productImages: []
     }
   }
 
+  componentDidMount() {
+    const { product } = this.props;
+    const { imagesSRC } = this.state;
+    const productImages = [...product.images];
+    productImages.unshift(imagesSRC);
+    this.setState({
+      productImages
+    })
+  }
 
-  handleImageClick = (productImg) => {
+
+  handleImageClick = (productImg, index) => {
 
     // const img = document.querySelector(`${e.target} > img`);
 
     this.setState({
-      isActive: !this.state.isActive,
+      isActive: index,
       imagesSRC: productImg
     })
 
@@ -66,8 +77,7 @@ class ProductDetailPage extends PureComponent {
 
   render() {
     const { product } = this.props;
-    const { isActive, imagesSRC, quantity } = this.state;
-
+    const { isActive, imagesSRC, quantity, productImages } = this.state;
 
     return (
       <div className="body">
@@ -95,7 +105,10 @@ class ProductDetailPage extends PureComponent {
                     <div className="single_product_thumbnails">
 
                       {/* product IMG  */}
-                      <ProductImgList productImgList={product.images} onImageClick={this.handleImageClick} />
+                      <ProductImgList
+                        isActive={isActive}
+                        productImgList={productImages}
+                        onImageClick={this.handleImageClick} />
 
 
                     </div>

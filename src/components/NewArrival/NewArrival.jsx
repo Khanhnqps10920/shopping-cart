@@ -70,8 +70,6 @@ class NewArrival extends PureComponent {
     let filter = { ...this.state.filter }
 
     try {
-  
-
       if (category.id === "all") {
         delete filter.where.categoryId;
         this.setState({
@@ -87,7 +85,7 @@ class NewArrival extends PureComponent {
 
 
       const params = {
-        filter: JSON.stringify(this.state.filter)
+        filter: JSON.stringify(filter)
       }
 
 

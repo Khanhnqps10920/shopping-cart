@@ -2,7 +2,8 @@ import { actionType } from '../actions/actionType';
 
 const initialState = {
   cartItemList: [],
-  total: 0
+  total: 0,
+  quantity: 0
 }
 
 const cartReducer = (state = initialState, action) => {
@@ -27,8 +28,10 @@ const cartReducer = (state = initialState, action) => {
       }
       let total = state.total;
       total = total + product.salePrice;
+      let quantity = state.quantity;
+      quantity = quantity + 1
 
-      return { ...state, cartItemList: cartItemList, total }
+      return { ...state, cartItemList: cartItemList, total, quantity }
     };
     case actionType.REMOVE_FROM_CART: {
       // get product / cartItemList
@@ -40,10 +43,17 @@ const cartReducer = (state = initialState, action) => {
       const itemIdx = cartItemList.findIndex(i => i.id === product.id);
       let total = state.total;
       total = total - (cartItemList[itemIdx].product.salePrice * cartItemList[itemIdx].quantity);
+
+      let quantity = state.quantity;
+      quantity = quantity - cartItemList[itemIdx].quantity;
+
       cartItemList.splice(itemIdx, 1);
 
-      return { ...state, total, cartItemList };
+      return { ...state, total, cartItemList, quantity };
     }
+
+    //
+    
     case actionType.REMOVE_ONE_ITEM_FROM_CART: {
 
       // find idx 
@@ -60,8 +70,10 @@ const cartReducer = (state = initialState, action) => {
       };
 
       total = total - product.product.salePrice;
+      let quantity = state.quantity;
+      quantity = quantity - 1;
 
-      return { ...state, cartItemList, total };
+      return { ...state, cartItemList, total, quantity };
     }
 
     default: return state;

@@ -7,7 +7,8 @@ import { connect } from 'react-redux';
 class Header extends PureComponent {
   render() {
 
-    const { cartList } = this.props;
+    const { cartList, quantity } = this.props;
+    console.log(quantity);
 
     return (
       <div>
@@ -70,7 +71,7 @@ class Header extends PureComponent {
                         <Link to="/cart" >
                           <i className="fa fa-shopping-cart" aria-hidden="true"></i>
                           {
-                            cartList.length < 1 ? '' : <span id="checkout_items" className="checkout_items">{cartList.length}</span>
+                            quantity < 1 ? '' : <span id="checkout_items" className="checkout_items">{quantity}</span>
                           }
                         </Link>
                       </li>
@@ -150,7 +151,8 @@ Header.defaultProps = {
 
 const mapStateToProps = state => {
   return {
-    cartList: state.cart.cartItemList
+    cartList: state.cart.cartItemList,
+    quantity: state.cart.quantity
   }
 }
 

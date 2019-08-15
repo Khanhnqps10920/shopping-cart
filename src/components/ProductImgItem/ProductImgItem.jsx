@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 class ProductImgItem extends PureComponent {
   render() {
 
-    const { productImg, onClick, } = this.props;
+    const { productImg, onClick, isActive, idx } = this.props;
     return (
-      <li onClick={() => onClick(productImg)}><img src={productImg} alt="" data-image={productImg} /></li>
+      <li className={isActive === idx ? 'active' : ''} onClick={onClick}><img src={productImg} alt="" data-image={productImg} /></li>
     );
   }
 }

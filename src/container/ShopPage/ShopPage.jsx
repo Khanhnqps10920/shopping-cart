@@ -1,4 +1,6 @@
 import React, { PureComponent } from 'react';
+import qs from 'query-string'
+
 import PropTypes from 'prop-types';
 import './Shop.scss';
 import ProductList from '../../components/ProductList/ProductList';
@@ -12,7 +14,21 @@ import { bindActionCreators } from 'redux'
 import productApi from '../../api/productApi';
 import categoriesApi from '../../api/categoryApi';
 import NumbersOfPage from '../../components/NumbersOfPage/NumbersOfPage';
-import { async } from 'q';
+
+const Filter = (filter, categoryId, salePrice) => {
+  let newfilter = { ...filter };
+
+  if (categoryId) {
+    newfilter.categoryId = categoryId;
+    newfilter.salePrice = salePrice;
+  }
+  else {
+    newfilter.salePrice = salePrice;
+  }
+  delete newfilter.where;
+
+  return newfilter;
+}
 
 
 class ShopPage extends PureComponent {
@@ -25,7 +41,7 @@ class ShopPage extends PureComponent {
       ],
       categories: [
       ],
-      filterPrice: '',
+      filterPrice: 0,
       dataFetch: false,
       sortTypeItem: 'DEFAULT SORTING',
       show: 'default',
@@ -51,18 +67,36 @@ class ShopPage extends PureComponent {
         limit: 12,
         order: '',
         where: {
-          and: [
-            { salePrice: { gte: 0 } }
-          ]
+          salePrice: { gte: 0 },
         }
       },
-      currentPage: 1
+      currentPage: 1,
     };
   };
 
   async componentDidMount() {
     try {
-      const { filter } = this.state;
+
+      const { location } = this.props;
+      console.log(location);
+
+      const filterOnLocation = qs.parse(location.search);
+      console.log(filterOnLocation);
+      const filter = { ...this.state.filter };
+      console.log(filter);
+      if (filterOnLocation.categoryId) {
+        filter.where.categoryId = filterOnLocation.categoryId;
+      }
+      else {
+        delete filter.where.categoryId;
+      }
+
+      //cant clone
+      filter.skip = filterOnLocation.skip - 0;
+      filter.limit = filterOnLocation.limit - 0;
+      filter.order = filterOnLocation.order;
+      filter.where.salePrice.gte = filterOnLocation.salePrice - 0;
+
       const params = {
         filter: JSON.stringify(filter)
       }
@@ -80,7 +114,8 @@ class ShopPage extends PureComponent {
         pages[i] = i + 1;
       }
 
-      console.log(totalPage, total, limit, pages);
+      console.log(location);
+
       const categoryList = await categoriesApi.getAll();
 
       const { body: categories } = categoryList;
@@ -101,6 +136,8 @@ class ShopPage extends PureComponent {
     }
   }
 
+
+  //price
   handlePriceChange = (e) => {
     this.setState({
       filterPrice: e.target.value
@@ -117,7 +154,9 @@ class ShopPage extends PureComponent {
     }
     try {
 
-      filter.where.and[0].salePrice.gte = filterPrice - 0;
+      const { history, location } = this.props;
+
+      filter.where.salePrice.gte = filterPrice - 0;
       this.setState({
         filter
       })
@@ -128,10 +167,21 @@ class ShopPage extends PureComponent {
       console.log(data);
       const { body: productList } = data;
 
+
       this.setState({
         dataFetch: true,
         filter,
         productList
+      })
+      console.log(this.state.filter);
+
+      const newFilter = Filter(filter, !filter.where.categoryId ?
+        null : filter.where.categoryId,
+        filter.where.salePrice.gte);
+
+      history.push({
+        pathname: location.pathname,
+        search: qs.stringify(newFilter)
       })
 
     }
@@ -141,7 +191,12 @@ class ShopPage extends PureComponent {
 
   }
 
+
+  //category
   handleCategoryClick = async (category) => {
+
+    const { history, location } = this.props;
+
     this.setState({
       dataFetch: false,
     })
@@ -153,17 +208,13 @@ class ShopPage extends PureComponent {
 
       if (category.id === "all") {
         delete filter.where.categoryId;
-        this.setState({
-          filter
-        })
       }
       else {
         filter.where.categoryId = category.id;
-        this.setState({
-          filter
-        })
       }
-
+      this.setState({
+        filter
+      })
 
       const params = {
         filter: JSON.stringify(filter)
@@ -177,14 +228,28 @@ class ShopPage extends PureComponent {
       this.setState({
         dataFetch: true,
         productList
-      })
+      });
+
+
+      const newFilter = Filter(filter, !filter.where.categoryId ?
+        null : filter.where.categoryId,
+        filter.where.salePrice.gte);
+
+      history.push({
+        pathname: location.pathname,
+        search: qs.stringify(newFilter)
+      });
+
     } catch (e) {
       console.log(e);
     }
 
   }
 
+
+  //sort
   handleSortClick = async (sortingType) => {
+    const { history, location } = this.props;
 
     const filter = { ...this.state.filter };
 
@@ -205,7 +270,17 @@ class ShopPage extends PureComponent {
       this.setState({
         productList,
         sortTypeItem: sortingType.title
-      })
+      });
+
+
+      const newFilter = Filter(filter, !filter.where.categoryId ?
+        null : filter.where.categoryId,
+        filter.where.salePrice.gte);
+
+      history.push({
+        pathname: location.pathname,
+        search: qs.stringify(newFilter)
+      });
 
     } catch (e) {
       console.log(e);
@@ -213,32 +288,56 @@ class ShopPage extends PureComponent {
 
   }
 
+  //change page
   handleChangePageClick = async (page) => {
-    this.setState({
-      dataFetch: false
-    })
-    const filter = { ...this.state.filter };
-    filter.skip = (page - 1) * filter.limit;
-    this.setState({
-      filter
-    })
+    const { history, location } = this.props;
 
-    const params = {
-      filter: JSON.stringify(this.state.filter)
+    try {
+      this.setState({
+        dataFetch: false
+      })
+      const filter = { ...this.state.filter };
+      filter.skip = (page - 1) * filter.limit;
+      this.setState({
+        filter
+      })
+
+      const params = {
+        filter: JSON.stringify(filter)
+      }
+      console.log(filter);
+
+
+      const products = await productApi.getAll(params);
+      const { body: productList } = products;
+
+      this.setState({
+        dataFetch: true,
+        productList,
+        currentPage: page
+      });
+
+
+
+      const newFilter = Filter(filter, !filter.where.categoryId ?
+        null : filter.where.categoryId,
+        filter.where.salePrice.gte);
+
+      history.push({
+        pathname: location.pathname,
+        search: qs.stringify(newFilter)
+      });
+
+    } catch (e) {
+      console.log(e)
     }
 
-
-    const products = await productApi.getAll(params);
-    const { body: productList } = products;
-
-    this.setState({
-      dataFetch: true,
-      productList,
-      currentPage: page
-    })
   }
 
+  //numclick
   handleNumClick = async (num) => {
+
+    const { history, location } = this.props;
 
     const filter = { ...this.state.filter };
 
@@ -255,7 +354,7 @@ class ShopPage extends PureComponent {
 
       const products = await productApi.getAll(params);
       const { body: productList } = products;
-      
+
       const { limit: limit, total: total } = products.pagination;
 
       const totalPage = Math.ceil((total / limit));
@@ -265,15 +364,26 @@ class ShopPage extends PureComponent {
       for (let i = 0; i < pages.length; i++) {
         pages[i] = i + 1;
       }
+      console.log(filter);
 
 
-    
       this.setState({
         productList,
         show: num.title,
         totalPage,
         pages
-      })
+      });
+
+
+      const newFilter = Filter(filter, !filter.where.categoryId ?
+        null : filter.where.categoryId,
+        filter.where.salePrice.gte);
+
+      history.push({
+        pathname: location.pathname,
+        search: qs.stringify(newFilter)
+      });
+
 
     } catch (e) {
       console.log(e);
@@ -281,6 +391,8 @@ class ShopPage extends PureComponent {
 
   }
 
+
+  //productClick
   handleProductClick = (product) => {
     const { history } = this.props;
     const productDetailURL = `/shop/${product.id}`;
@@ -296,6 +408,9 @@ class ShopPage extends PureComponent {
 
   render() {
 
+    const { location } = this.props;
+    console.log(location);
+
     let {
       productList,
       filterPrice,
@@ -307,9 +422,8 @@ class ShopPage extends PureComponent {
       dataFetch,
       totalPage,
       pages,
-      currentPage
+      currentPage,
     } = this.state;
-
 
     return (
 
@@ -339,7 +453,14 @@ class ShopPage extends PureComponent {
                   <h5>Filter by Price</h5>
                 </div>
                 <p>
-                  <input type="text" value={filterPrice} onChange={this.handlePriceChange} id="amount" />
+                  <input
+                    type="range"
+                    min="0"
+                    max="600"
+                    className="slider"
+                    onChange={(e) => this.handlePriceChange(e)}
+                  />
+                  <h3>$: {filterPrice}</h3>
                 </p>
                 <div id="slider-range"></div>
                 <div className="filter_button" onClick={this.handleFilterPrice}><span>filter</span></div>
@@ -435,7 +556,6 @@ class ShopPage extends PureComponent {
             </div>
           </div>
         </div >
-
       </div >
     );
   }
