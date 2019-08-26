@@ -80,22 +80,24 @@ class ShopPage extends PureComponent {
       const { location } = this.props;
       console.log(location);
 
-      const filterOnLocation = qs.parse(location.search);
-      console.log(filterOnLocation);
       const filter = { ...this.state.filter };
-      console.log(filter);
-      if (filterOnLocation.categoryId) {
-        filter.where.categoryId = filterOnLocation.categoryId;
-      }
-      else {
-        delete filter.where.categoryId;
-      }
+      if (location.search) {
+        const filterOnLocation = qs.parse(location.search);
+        if (filterOnLocation.categoryId) {
+          filter.where.categoryId = filterOnLocation.categoryId;
+        }
+        else {
+          delete filter.where.categoryId;
+        }
 
-      //cant clone
-      filter.skip = filterOnLocation.skip - 0;
-      filter.limit = filterOnLocation.limit - 0;
-      filter.order = filterOnLocation.order;
-      filter.where.salePrice.gte = filterOnLocation.salePrice - 0;
+        //cant clone
+        filter.skip = filterOnLocation.skip - 0;
+        filter.limit = filterOnLocation.limit - 0;
+        filter.order = filterOnLocation.order;
+        filter.where.salePrice.gte = filterOnLocation.salePrice - 0;
+      }
+      console.log(filter);
+
 
       const params = {
         filter: JSON.stringify(filter)

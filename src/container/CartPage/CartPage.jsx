@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom'
-import './CartPage.scss'
+import { Link } from 'react-router-dom';
+import './CartPage.scss';
 import CartItemList from '../../components/CartItem/CartItemList';
 
 class CartPage extends PureComponent {
@@ -11,10 +11,9 @@ class CartPage extends PureComponent {
   }
 
   render() {
-
     // const { cartItems } = this.state;
     const { cartItemList, total } = this.props;
-    console.log(cartItemList)
+    console.log(cartItemList);
     let cart;
 
     if (cartItemList.length < 1) {
@@ -25,8 +24,7 @@ class CartPage extends PureComponent {
           </div>
         </div>
       );
-    }
-    else {
+    } else {
       cart = (
         <div className="cart cart-item">
           <div className="cart-justify-space-between">
@@ -45,12 +43,7 @@ class CartPage extends PureComponent {
       );
     }
 
-    return (
-      <div>
-        {cart}
-      </div>
-
-    );
+    return <div>{cart}</div>;
   }
 }
 
@@ -58,7 +51,7 @@ const mapStateToProps = state => {
   return {
     cartItemList: state.cart.cartItemList,
     total: state.cart.total
-  }
+  };
 };
 
 CartPage.propTypes = {
@@ -69,6 +62,6 @@ CartPage.propTypes = {
 CartPage.defaultProps = {
   total: 0,
   cartItemList: []
-}
+};
 
 export default connect(mapStateToProps)(CartPage);

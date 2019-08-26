@@ -10,8 +10,8 @@ const request = async (url, options = {}) => {
     // Merge options
     const requestOptions = {
       ...options,
-      headers,
-    }
+      headers
+    };
 
     // Send request
     const response = await fetch(url, requestOptions);
@@ -29,7 +29,7 @@ const request = async (url, options = {}) => {
     throw error;
   } catch (error) {
     // Just throw current error
-    throw error
+    throw error;
   }
 };
 
@@ -42,18 +42,20 @@ const get = async (url, params) => {
 };
 
 // Add new
-const post = async (url, body) => request(url, { method: 'POST', body: JSON.stringify(body) });
+const post = async (url, body) =>
+  request(url, { method: 'POST', body: JSON.stringify(body) });
 
 // Update
-const patch = async (url, body) => request(url, { method: 'PATCH', body: JSON.stringify(body) });
+const patch = async (url, body) =>
+  request(url, { method: 'PATCH', body: JSON.stringify(body) });
 
 // Remove
-const deleteRequest = async (url) => request(url, { method: 'DELETE' });
+const deleteRequest = async url => request(url, { method: 'DELETE' });
 
 const fetchClient = {
   get,
   post,
   patch,
-  delete: deleteRequest,
+  delete: deleteRequest
 };
 export default fetchClient;
